@@ -2,75 +2,151 @@
 <html>
 <!-- <script src = "sketch.js"></script> -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+    /* Razorwing Theme */
+    body {
+        background: #0d0f1a;
+        /* Deep dark blue/black */
+        color: #dfe3ec;
+        /* Soft off-white text */
+        font-family: 'Poppins', sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    /* Chart Container */
+    #myPlot {
+        background: rgba(20, 22, 34, 0.8);
+        /* Slightly transparent dark */
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 255, 255, 0.3);
+        /* Soft cyan glow */
+    }
+
+    /* Select Dropdown */
+    select {
+        background: #1b1e2b;
+        /* Dark background */
+        color: #dfe3ec;
+        /* Light text */
+        border: 2px solid #00ffff;
+        /* Cyan neon border */
+        padding: 8px;
+        font-size: 16px;
+        border-radius: 5px;
+        outline: none;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    select:hover {
+        border-color: #ff00ff;
+        /* Magenta glow */
+        box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+    }
+
+    select:focus {
+        border-color: #00ffff;
+        /* Cyan when focused */
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+
+    /* Smooth Fade-In */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    body,
+    #myPlot,
+    select {
+        animation: fadeIn 0.6s ease-out;
+    }
+</style>
+
 <body>
 
-<div id="myPlot" style="width:100%;max-width:700px"></div>
-<select id="saves"></select>
+    <div id="myPlot" style="width:100%;max-width:700px"></div>
+    <select id="saves"></select>
 
-<script>
+    <script>
 
-// Define Data
-const chart_data = [{
-    x:[],
-    y:[],
-    mode:"markers"
-}];
+        // Define Data
+        const chart_data = [{
+            x: [],
+            y: [],
+            mode: "markers"
+        }];
 
-// Define Layout
-const chart_layout = {
-    xaxis: {title: "Time"},
-    yaxis: {title: "Height"},  
-    title: "Rocket yeet height"
-};
+        // Define Layout
+        const chart_layout = {
+            xaxis: { title: "Time" },
+            yaxis: { title: "Height" },
+            title: "Rocket yeet height"
+        };
 
 
-function getSavefiles(){
-    fetch('/savefiles')
-        .then(response => {
-            if (!response.ok) throw new Error("HTTP error " + response.status)
-            return response.json()
-        }).then(json => {
-            let select = document.getElementById("saves")
-            while (select.firstChild) {
-                select.removeChild(select.firstChild);
-            }
-            for(let save of json){
-                let option = document.createElement("option")
-                option.value = save
-                option.text = save
-                select.append(option)
-            }
-            if (select.options.length > 0) {
-                select.selectedIndex = 0;
-            }
-        }).catch(err => console.error("Failed to get list of save files: ", err))
-}
+        function getSavefiles() {
+            fetch('/savefiles')
+                .then(response => {
+                    if (!response.ok) throw new Error("HTTP error " + response.status)
+                    return response.json()
+                }).then(json => {
+                    let select = document.getElementById("saves")
+                    while (select.firstChild) {
+                        select.removeChild(select.firstChild);
+                    }
+                    for (let save of json) {
+                        let option = document.createElement("option")
+                        option.value = save
+                        option.text = save
+                        select.append(option)
+                    }
+                    if (select.options.length > 0) {
+                        select.selectedIndex = 0;
+                    }
+                }).catch(err => console.error("Failed to get list of save files: ", err))
+        }
 
-function getSaveData(filename){
-    fetch('/saves/'+filename)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("HTTP error " + response.status);
-            }
-            return response.json();
-        })
-        .then(json => {
-            Plotly.update("myPlot", {'x': [json.time_ms], 'y': [json.altitude]}, {});
-        })
-        .catch(err => console.log("An error occurred while fetching the save data."))
-}
+        function getSaveData(filename) {
+            fetch('/saves/' + filename)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("HTTP error " + response.status);
+                    }
+                    return response.json();
+                })
+                .then(json => {
+                    Plotly.update("myPlot", { 'x': [json.time_ms], 'y': [json.altitude] }, {});
+                })
+                .catch(err => console.log("An error occurred while fetching the save data."))
+        }
 
-window.onload = function(){
-    // Get the list of savefiles
-    getSavefiles()
+        window.onload = function () {
+            // Get the list of savefiles
+            getSavefiles()
 
-    let select = document.getElementById("saves");
-    select.addEventListener("change", function (){getSaveData(this.value)});
+            let select = document.getElementById("saves");
+            select.addEventListener("change", function () { getSaveData(this.value) });
 
-    // Display using Plotly
-    Plotly.newPlot("myPlot", [chart_data], chart_layout);
-}
-</script>
+            // Display using Plotly
+            Plotly.newPlot("myPlot", [chart_data], chart_layout);
+        }
+    </script>
 
 </body>
+
 </html>
